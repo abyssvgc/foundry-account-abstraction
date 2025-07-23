@@ -60,7 +60,7 @@ contract MinimalAccount is IAccount, Ownable {
 
     function validateUserOp(PackedUserOperation calldata userOp, bytes32 userOpHash, uint256 missingAccountFunds)
         external
-        requireFromEntryPointOrOwner
+        requireFromEntryPoint
         returns (uint256 validationData)
     {
         validationData = _validateSignature(userOp, userOpHash);
