@@ -30,6 +30,7 @@ contract ZkMinimalAccount is IAccount, Ownable {
     error ZkMinimalAccount__NotFromBootLoaderOrOwner();
     error ZkMinimalAccount__ExecutionFailed();
     error ZkMinimalAccount__FailedToPay();
+    error ZkMinimalAccount__InvalidSignature();
 
     modifier requiereFromBootLoader() {
         if (msg.sender != BOOTLOADER_FORMAL_ADDRESS) {
@@ -72,7 +73,10 @@ contract ZkMinimalAccount is IAccount, Ownable {
     }
 
     function executeTransactionFromOutside(Transaction memory _transaction) external payable {
-        _validateTransaction(_transaction);
+        bytes4 magic = _validateTransaction(_transaction);
+        if (magic != ACCOUNT_VALIDATION_SUCCESS_MAGIC) {
+            revert ZkMinimalAccount__InvalidSignature();
+        }
         _executeTransaction(_transaction);
     }
 
@@ -137,7 +141,7 @@ contract ZkMinimalAccount is IAccount, Ownable {
             );
         } else {
             bool success;
-            assembly {
+            assembly ("memory-safe") {
                 success :=
                     call(
                         gas(), // gas: Pass all remaining gas to the call
